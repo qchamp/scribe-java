@@ -3,6 +3,8 @@ package org.scribe.model;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.scribe.exceptions.*;
 import org.scribe.utils.*;
@@ -38,11 +40,25 @@ public class Response
     }
   }
 
-  private String parseBodyContents()
-  {
-    body = StreamUtils.getStreamContents(getStream());
-    return body;
-  }
+    private String parseBodyContents() {
+        InputStream is = null;
+        try {
+            is = getStream();
+            body = StreamUtils.getStreamContents(is);
+            return body;
+        } finally {
+            try {
+                if (is == null) {
+                    throw new IllegalStateException("Error while closing InputStream Reader");
+                }
+                is.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                Logger.getLogger(Response.class.getName()).log(Level.SEVERE, null, ex);
+                throw new IllegalStateException("Error while reading response body", ex);
+            }
+        }
+    }
 
   private Map<String, String> parseHeaders(HttpURLConnection conn)
   {

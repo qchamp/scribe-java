@@ -99,22 +99,25 @@ public class Request
 
   Response doSend(RequestTuner tuner) throws IOException
   {
-    connection.setRequestMethod(this.verb.name());
-    if (connectTimeout != null) 
-    {
-      connection.setConnectTimeout(connectTimeout.intValue());
-    }
-    if (readTimeout != null)
-    {
-      connection.setReadTimeout(readTimeout.intValue());
-    }
-    addHeaders(connection);
-    if (verb.equals(Verb.PUT) || verb.equals(Verb.POST))
-    {
-      addBody(connection, getByteBodyContents());
-    }
-    tuner.tune(this);
-    return new Response(connection);
+      Response response = null;
+      try {
+          connection.setRequestMethod(this.verb.name());
+          if (connectTimeout != null) {
+              connection.setConnectTimeout(connectTimeout.intValue());
+          }
+          if (readTimeout != null) {
+              connection.setReadTimeout(readTimeout.intValue());
+          }
+          addHeaders(connection);
+          if (verb.equals(Verb.PUT) || verb.equals(Verb.POST)) {
+              addBody(connection, getByteBodyContents());
+          }
+          tuner.tune(this);
+          response = new Response(connection);
+      } finally {
+          connection.disconnect();
+      }
+    return response;
   }
 
   void addHeaders(HttpURLConnection conn)
